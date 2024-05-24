@@ -345,9 +345,23 @@ def gameWindowFunc():
     global game,minesLeft,btnToggleMark,lblTiempo,lblWonOrLost
     buttonSize=3
     game=Tk()
-    gameArea=Frame(game)
+    canvas = Canvas(game)
+    canvas.pack(side=LEFT, fill=BOTH, expand=True)
+
+    # Crear un scrollbar vertical y Horizontal
+    vScrollbar = Scrollbar(game, orient=VERTICAL, command=canvas.yview)
+    vScrollbar.pack(side=RIGHT, fill=Y)
+    hScrollbar = Scrollbar(game, orient=HORIZONTAL, command=canvas.xview)
+    hScrollbar.pack(side=BOTTOM, fill=X)
+    
+    canvas.configure(yscrollcommand=vScrollbar.set)
+    canvas.configure(xscrollcommand=hScrollbar.set)
+    gameArea=Frame(canvas)
+    canvas.create_window((0, 0), window=gameArea, anchor="e")
+   
     toolBar=Frame(game)
     botToolBar=Frame(game)
+
     minesLeft=StringVar()
     currentTime=StringVar()
     lblWonOrLost=StringVar()
@@ -366,9 +380,9 @@ def gameWindowFunc():
     Button(botToolBar,text="Main Menu",command=mainMenu,fg="black",font=('Comic Sans MS', 10)).grid(column=2,row=0)
     lblTiempo.grid(column=0,row=0)
     lblMinasLeft.grid(column=1,row=0)
-    toolBar.grid(row=0,column=0)
-    gameArea.grid(row=1,column=0)
-    botToolBar.grid(column=0,row=3)
+    toolBar.pack(side=TOP)
+    botToolBar.pack(side=BOTTOM,fill=X)
+
     for i in range(filas):
         for j in range(columnas):
             button = Button(
@@ -380,6 +394,9 @@ def gameWindowFunc():
             )
             button.grid(row=i, column=j, sticky="nsew")  # Elimina el espacio entre los botones
             tableroShown[i][j] = [button,False,False,False] #[botón, locked, marked,revealed]
+
+    gameArea.update_idletasks()
+    canvas.config(scrollregion=canvas.bbox("all"), yscrollcommand=vScrollbar.set)
     updateTimer()
     game.mainloop()
 
