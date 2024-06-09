@@ -357,7 +357,7 @@ def gameWindowFunc():
     canvas.configure(yscrollcommand=vScrollbar.set)
     canvas.configure(xscrollcommand=hScrollbar.set)
     gameArea=Frame(canvas)
-    canvas.create_window((0, 0), window=gameArea, anchor="e")
+    canvas.create_window((0, 0), window=gameArea, anchor="w")
    
     toolBar=Frame(game)
     botToolBar=Frame(game)
