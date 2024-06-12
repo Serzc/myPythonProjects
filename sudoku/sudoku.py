@@ -107,12 +107,17 @@ def print_board(board):
 #Devuelve una matriz con los botones
 def generateButtons(frame,board):
     buttons=[]
+    
     for i in range(len(board)):
         row=[]
         for j in range(len(board[0])):
+            if board[i][j]!=0:
+                btnText=board[i][j]
+            else:
+                btnText=""
             button = Button(
                 frame,
-                text=f"{board[i][j]}",bg="white",
+                text=f"{btnText}",bg="white",
                 width=4 ,
                 height=2 ,
                 command=lambda i=i, j=j: buttonClick(i, j)
@@ -122,42 +127,110 @@ def generateButtons(frame,board):
         buttons+=[copy.copy(row)]
     return buttons
 
+def generateKeyPad(frame,keyPadList,activeNum):
+     for num in range(1,10):
+        button = Button(
+                    frame,
+                    text=f"{num}",bg="gray",
+                    width=5 ,
+                    height=3 ,
+                    command=lambda num=num, activeNum=activeNum: keyPadClick(num,activeNum)
+                )
+        button.grid(row=posicion[num][0],column=posicion[num][1])
+        keyPadList+=[button]
+
 def setAllButtonsColor(board,color):
     for row in board:
         for button in row:
             button.configure(bg=color)
- 
-     
 
-def buttonClick(i,j):
-     setAllButtonsColor(gameButtons,"white")
+def setRowColAndSimilarColor(buttonBoard,i,j):
      num=board[i][j]
-     for row in range(len(gameButtons)):
-          for col in range(len(gameButtons[0])):
-                if row==i or col==j:
-                    gameButtons[row][col].configure(bg="deep pink")
-                if board[row][col]==num and num!=0:
-                    gameButtons[row][col].configure(bg="blue")
-                     
      start_row = i - i % 3
      start_col = j - j % 3
      
      for row in range(3):
         for col in range(3):
-            gameButtons[row + start_row][col + start_col].configure(bg="green2")
-
-                
+            buttonBoard[row + start_row][col + start_col].configure(bg="light cyan")
+     for row in range(len(buttonBoard)):
+          for col in range(len(buttonBoard[0])):
+                if row==i or col==j:
+                    buttonBoard[row][col].configure(bg="light cyan")
+                if board[row][col]==num and num!=0:
+                    buttonBoard[row][col].configure(bg="sky blue")
+ 
+def keyPadClick(num,activeNum):
+     for i in range(len(activeNum)):
+          activeNum[i]=False 
+     activeNum[num-1]=num
+     setAllButtonsColor([keyPadList],"gray")
+     keyPadList[num-1].configure(bg="mint cream")
      return
 
+def buttonClick(i,j):
+     setAllButtonsColor(gameButtons,"white")
+     setRowColAndSimilarColor(gameButtons,i,j)
+     gameButtons[i][j].configure(bg="SteelBlue2")
+     
+     return
+
+def placeButtonClick(activeNum):
+     for i in activeNum:
+          if i:
+               print("placed",i)
+
+def notesButtonClick(activeNum):
+     for i in activeNum:
+          if i:
+               print("noted",i)
+
+def updateTimer(initialTime,root,lblTiempo): 
+    global strTimePassed, elapsedTime
+    if not gameOver:
+        elapsedTime = time.time() - initialTime 
+        minutes=int(elapsedTime)//60
+        seconds=int(elapsedTime)%60
+        strTimePassed=f"{minutes}:{str((seconds<10)*'0')+str(seconds)}"
+        lblTiempo.config(text= strTimePassed)       
+        root.after(1000, lambda initialTime=initialTime,root=root,lblTiempo=lblTiempo:updateTimer(initialTime,root,lblTiempo))
 ####################################################################################
 #Ventanas
 def gameWindow(board):
-    global gameButtons
+    global gameButtons, keyPadList,gameOver
     game=Tk()
-    gameArea=Frame(game)
+    gameOver=False
+    initialTime=time.time()
+    gameArea=Frame(game)                            #Area Sudoku
+    gameArea.grid(row=1,column=0,rowspan=2)
     gameButtons=generateButtons(gameArea,board)
+    Label(game,width=5).grid(column=1)              #Espacio
+
+    sideButtonBar=Frame(game)                       #Barra con botones para juego
+    sideButtonBar.grid(row=2,column=2)
+
+    topToolBar=Frame(game)
+    topToolBar.grid(row=0,column=0)
+
+    keyPad=Frame(game)                              #Keypad
+    keyPad.grid(row=1,column=2)
+    keyPadList=[]
+    activeNum=[False for i in range(9)]
+    generateKeyPad(keyPad,keyPadList,activeNum)
+
+    placeButton=Button(sideButtonBar,               #PlaceButton
+                       text="Place Number", 
+                       command=lambda activeNum=activeNum:placeButtonClick(activeNum))
+    placeButton.grid(row=1,column=0)
+
+    notesButton=Button(sideButtonBar,               #NotesButton
+                       text="Note",
+                        command=lambda activeNum=activeNum:notesButtonClick(activeNum))
+    notesButton.grid(row=1,column=1)
+
+    lblTiempo=Label(topToolBar,text="jiji",fg="black",font=('Comic Sans MS', 10))
+    lblTiempo.grid(row=0,column=1)
+    updateTimer(initialTime,game,lblTiempo)
     
-    gameArea.grid()
     game.mainloop()
 
 def main():
